@@ -1,6 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 from django.http import HttpResponse
-from . models import Product,Contact,Orders,OrderUpdate
+from . models import Product,Contact,Orders,OrderUpdate,User
 import json
 from math import ceil
 
@@ -21,7 +21,16 @@ def index(request):
         nSlides = n // 4 + ceil((n / 4) - (n // 4))
         allProds.append([prod, range(1, nSlides), nSlides])
     params = {'allProds':allProds }
-    return render(request,'shop/index.html',params)
+
+    if 'user' in request.session:
+        current_user = request.session['user']
+        param = {'current_user': current_user}
+        return render(request,'shop/index.html',params)
+    else:
+        return redirect('login')
+    # return render(request, 'login.html')
+
+    
 
 def about(request):
     return render(request,'shop/about.html')
@@ -37,6 +46,20 @@ def contact(request):
         contact = Contact(name=name, email=email, phone=phone, desc=desc)
         contact.save()
     return render(request,'shop/contact.html')
+
+def signup(request):
+	if request.method == 'POST':
+		uname = request.POST.get('uname')
+		pwd = request.POST.get('pwd')
+		# print(uname, pwd)
+		if User.objects.filter(username=uname).count()>0:
+			return HttpResponse('Username already exists.')
+		else:
+			user = User(username=uname, password=pwd)
+			user.save()
+			return redirect('login')
+	else:
+		return render(request, 'shop/signup.html')
 
 def tracker(request):
     if request.method=="POST":
@@ -87,6 +110,36 @@ def checkout(request):
 
     return render(request,'shop/checkout.html')
 
+
+
 def search(request):
     return render(request,'shop/search.html')
 
+
+
+ 
+    
+
+
+
+def login(request):
+    if request.method == 'POST':
+        uname = request.POST.get('uname')
+        pwd = request.POST.get('pwd')
+
+        check_user = User.objects.filter(username=uname, password=pwd)
+        if check_user:
+            request.session['user'] = uname
+            return redirect('/')
+        else:
+            return HttpResponse('Please enter valid Username or Password.')
+
+    return render(request, 'shop/login.html')
+
+
+def logout(request):
+    try:
+        del request.session['user']
+    except:
+        return redirect('login')
+    return redirect('login')

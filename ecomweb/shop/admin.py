@@ -5,6 +5,8 @@ from . models import Product
 from . models import Contact
 from . models import Orders
 from . models import OrderUpdate
+from . models import User
+admin.site.register(User)
 admin.site.register(Product)
 admin.site.register(Contact)
 admin.site.register(Orders)
